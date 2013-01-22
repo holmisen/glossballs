@@ -89,7 +89,7 @@ initModel = [ Ball (50:+50) (40:+20)
             ]
 
 makeRandomModel :: (RandomGen g) => g -> Int -> Model
-makeRandomModel g n = map (uncurry Ball) $ zip ps vs where
+makeRandomModel g n = zipWith Ball ps vs where
     vs = randomVecs g 10 80
     as = [fromIntegral i * a | i <- [1..n]]
     ps = [mkPolar s a | a <- as]
