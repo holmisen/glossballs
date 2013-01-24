@@ -5,6 +5,7 @@ import Data.Complex
 import Debug.Trace
 import Graphics.Gloss
 import System.Random (RandomGen, getStdGen)
+import ReadArgs      (readArgs)
 
 import qualified Balls as B
 import Balls (Vec2)
@@ -27,17 +28,19 @@ modelRight = modelW2
 
 
 main = do
+  n <- readArgs  -- ^ number of balls in model
   g <- getStdGen
   let window = InWindow "Gloss Balls" (modelWidth, modelHeight) (0,0)
-  let initModel = makeRandomModel g 10
---  display window white (drawModel $ makeRandomModel g 10)
+  let initModel = makeRandomModel g n
+  -- let initModel = [Ball p (0:+0) | p <- radialBallPoints ballSize 10 (n::Int)]
+  -- display window white (drawModel initModel)
   simulate
         window           -- display
         white            -- background
         30               -- steps per second
         initModel        -- initial model
         drawModel        -- display function
-        (\v -> stepModel) -- step function
+        (const stepModel) -- step function
 
 ------------------------------------------------------------
 
@@ -80,7 +83,6 @@ stepModel dt = map (stepBall dt) . collissions bcp bcf
         in B.isCollission p ballSize q ballSize && (d2 < d1)
 
 
-
 initModel = [ Ball (50:+50) (40:+20)
             , Ball (100:+150) ((-20):+(-30))
             , Ball (100:+80) (20:+(-50))
@@ -91,11 +93,27 @@ initModel = [ Ball (50:+50) (40:+20)
 makeRandomModel :: (RandomGen g) => g -> Int -> Model
 makeRandomModel g n = zipWith Ball ps vs where
     vs = randomVecs g 10 80
+    ps = radialBallPoints ballSize 10 n
+
+
+-- | Calculate the points to radially position 'n' circles with radius
+-- 'r' such that the distance between two balls is 'd'. Actually, this
+-- is the same as calculating the vertices of a regular n-sided
+-- polygon with sides '2*r+d'.
+radialBallPoints
+  :: (Integral n, RealFloat a) => a -> a -> n -> [Complex a]
+radialBallPoints r d 1 = [0 :+ 0]
+radialBallPoints r d n = map (mkPolar $ circumradius n s) as where
     as = [fromIntegral i * a | i <- [1..n]]
-    ps = [mkPolar s a | a <- as]
-    d  = 2*ballSize + 10
-    s  = (d * fromIntegral n)/(2*pi)
-    a  = d/s
+    n' = fromIntegral n
+    a  = 2*pi / n'
+    s  = 2*r + d
+
+
+-- | The radius of a regular polygon with n sides of length s.
+circumradius :: (Floating a, Integral n) => n -> a -> a
+circumradius n s = s / (2*sin (pi / fromIntegral n))
+
 
 ------------------------------------------------------------
 
