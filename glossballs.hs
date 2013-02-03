@@ -12,14 +12,12 @@ import Balls (Vec2)
 import MotionVec (randomVecs)
 
 
+modelHeight, modelWidth :: Num a => a
 modelHeight = 500
 modelWidth  = 600
 
-modelHeightf = fromIntegral modelHeight
-modelWidthf  = fromIntegral modelWidth
-
-modelH2 = fromIntegral modelHeight / 2
-modelW2 = fromIntegral modelWidth / 2
+modelH2 = modelHeight / 2
+modelW2 = modelWidth / 2
 
 modelTop = modelH2
 modelBot = negate modelH2
@@ -68,10 +66,10 @@ type Model = [Ball]
 drawModel :: Model -> Picture
 drawModel = Pictures . (rect :) . map drawBall where
 --    rect = translate w2 h2 . Color black $ rectangleWire modelWidthf modelHeightf
-    rect = Color black $ rectangleWire modelWidthf modelHeightf
+    rect = Color black $ rectangleWire modelWidth modelHeight
     tr = translate (-w2) (-h2)
-    w2 = modelWidthf / 2
-    h2 = modelHeightf / 2
+    w2 = modelWidth / 2
+    h2 = modelHeight / 2
 
 stepModel :: Float -> Model -> Model
 stepModel dt = map (stepBall dt) . collissions bcp bcf 
