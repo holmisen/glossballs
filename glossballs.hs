@@ -65,11 +65,10 @@ type Model = [Ball]
 
 drawModel :: Model -> Picture
 drawModel = Pictures . (rect :) . map drawBall where
---    rect = translate w2 h2 . Color black $ rectangleWire modelWidthf modelHeightf
     rect = Color black $ rectangleWire modelWidth modelHeight
-    tr = translate (-w2) (-h2)
-    w2 = modelWidth / 2
-    h2 = modelHeight / 2
+    -- tr = translate (-w2) (-h2)
+    -- w2 = modelWidth / 2
+    -- h2 = modelHeight / 2
 
 stepModel :: Float -> Model -> Model
 stepModel dt = map (stepBall dt) . collissions bcp bcf 
