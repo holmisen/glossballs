@@ -66,9 +66,7 @@ type Model = [Ball]
 drawModel :: Model -> Picture
 drawModel = Pictures . (rect :) . map drawBall where
     rect = Color black $ rectangleWire modelWidth modelHeight
-    -- tr = translate (-w2) (-h2)
-    -- w2 = modelWidth / 2
-    -- h2 = modelHeight / 2
+
 
 stepModel :: Float -> Model -> Model
 stepModel dt = map (stepBall dt) . collissions bcp bcf 
@@ -115,8 +113,7 @@ circumradius n s = s / (2*sin (pi / fromIntegral n))
 ------------------------------------------------------------
 
 -- | Detecting and handling collissions between objects.
-collissions :: Show a =>        -- ^ only for debug
-              (a -> a -> Bool)  -- ^ function for detecting collission
+collissions :: (a -> a -> Bool)  -- ^ function for detecting collission
             -> (a -> a -> (a,a)) -- ^ function to apply when collission
             -> [a]             -- ^ objects
             -> [a]             -- ^ updated objects -- not necessarily in order
@@ -125,6 +122,6 @@ collissions collides cf = trav where
     trav []     = []
     test x xs   = x' : trav xs' where
         (x',xs') = foldl f (x,[]) xs
-        f (x,as) y | collides x y = {-traceShow (x,y) $ -} let (x',y') = cf x y in (x',y':as)
+        f (x,as) y | collides x y = let (x',y') = cf x y in (x',y':as)
                    | otherwise    = (x,y:as)
 
