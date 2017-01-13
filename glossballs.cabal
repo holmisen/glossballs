@@ -1,0 +1,21 @@
+name:                glossballs
+version:             0.1
+synopsis:            Some colliding balls
+-- description:
+homepage:            https://github.com/holmisen/glossballs
+author:              Johan Holmquist
+maintainer:          holmisen@gmail.com
+category:            Graphics
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+executable glossballs
+  main-is:             glossballs.hs
+  ghc-options:         -O2 -threaded
+  build-depends:       base >=4.9 && <4.10
+                     , gloss
+                     , random
+                     , ReadArgs
+  other-modules:       Balls, MotionVec
+  default-language:    Haskell2010
