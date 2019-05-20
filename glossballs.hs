@@ -52,9 +52,10 @@ drawBall (Ball (x :+ y) v) =
 
 stepBall :: Float -> Ball -> Ball
 stepBall dt (Ball p@(x:+y) v@(dx:+dy)) =
-    let dx' = if x < modelLeft || modelRight < x then -dx else dx
-        dy' = if y < modelBot || modelTop < y then -dy else dy
+    let dx' = if x-s < modelLeft || modelRight < x+s then -dx else dx
+        dy' = if y-s < modelBot  || modelTop   < y+s then -dy else dy
         v'  = dx' :+ dy'
+        s   = ballSize
     in Ball (p + vmult dt v') v'
 
 vmult s (x :+ y) = s*x :+ s*y
