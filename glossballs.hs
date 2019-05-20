@@ -34,7 +34,7 @@ main = do
   -- display window white (drawModel initModel)
   simulate
         window           -- display
-        white            -- background
+        (dark $ dark $ dark blue) -- background
         30               -- steps per second
         initModel        -- initial model
         drawModel        -- display function
@@ -48,7 +48,7 @@ ballSize = 30
 
 drawBall :: Ball -> Picture
 drawBall (Ball (x :+ y) v) =
-    translate x y $ Color red $ circleSolid ballSize
+    translate x y $ Color white $ circleSolid ballSize
 
 stepBall :: Float -> Ball -> Ball
 stepBall dt (Ball p@(x:+y) v@(dx:+dy)) =
@@ -69,7 +69,7 @@ drawModel = Pictures . (rect :) . map drawBall where
 
 
 stepModel :: Float -> Model -> Model
-stepModel dt = map (stepBall dt) . collissions bcp bcf 
+stepModel dt = map (stepBall dt) . collissions bcp bcf
     where
     bcf (Ball p v) (Ball q u) = (Ball p *** Ball q) (B.collideBalls p v q u)
     bcp (Ball p v) (Ball q u) =
@@ -124,4 +124,3 @@ collissions collides cf = trav where
         (x',xs') = foldl f (x,[]) xs
         f (x,as) y | collides x y = let (x',y') = cf x y in (x',y':as)
                    | otherwise    = (x,y:as)
-
