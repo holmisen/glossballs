@@ -11,24 +11,23 @@ import qualified Balls as B
 import Balls (Vec2)
 import MotionVec (randomVecs)
 
+initModelHeight, initModelWidth :: Num a => a
+initModelHeight = 500
+initModelWidth  = 600
 
-modelHeight, modelWidth :: Num a => a
-modelHeight = 500
-modelWidth  = 600
+modelH2 m = modelHeight m / 2
+modelW2 m = modelWidth m / 2
 
-modelH2 = modelHeight / 2
-modelW2 = modelWidth / 2
-
-modelTop = modelH2
-modelBot = negate modelH2
-modelLeft = negate modelW2
-modelRight = modelW2
+modelTop m = modelH2 m
+modelBot m = negate (modelH2 m)
+modelLeft m = negate (modelW2 m)
+modelRight m = modelW2 m
 
 
 main = do
   n <- readArgs  -- ^ number of balls in model
   g <- getStdGen
-  let window = InWindow "Gloss Balls" (modelWidth, modelHeight) (0,0)
+  let window = InWindow "Gloss Balls" (initModelWidth, initModelHeight) (0,0)
   let initModel = makeRandomModel g n
   -- let initModel = [Ball p (0:+0) | p <- radialBallPoints ballSize 10 (n::Int)]
   -- display window white (drawModel initModel)
@@ -50,10 +49,10 @@ drawBall :: Ball -> Picture
 drawBall (Ball (x :+ y) v) =
     translate x y $ Color white $ circleSolid ballSize
 
-stepBall :: Float -> Ball -> Ball
-stepBall dt (Ball p@(x:+y) v@(dx:+dy)) =
-    let dx' = if x-s < modelLeft || modelRight < x+s then -dx else dx
-        dy' = if y-s < modelBot  || modelTop   < y+s then -dy else dy
+stepBall :: Model -> Float -> Ball -> Ball
+stepBall m dt (Ball p@(x:+y) v@(dx:+dy)) =
+    let dx' = if x-s < modelLeft m || modelRight m < x+s then -dx else dx
+        dy' = if y-s < modelBot m  || modelTop m   < y+s then -dy else dy
         v'  = dx' :+ dy'
         s   = ballSize
     in Ball (p + vmult dt v') v'
@@ -62,15 +61,15 @@ vmult s (x :+ y) = s*x :+ s*y
 
 ------------------------------------------------------------
 
-type Model = [Ball]
+data Model = Model { modelWidth, modelHeight :: Float, modelBalls :: [Ball] }
 
 drawModel :: Model -> Picture
-drawModel = Pictures . (rect :) . map drawBall where
-    rect = Color black $ rectangleWire modelWidth modelHeight
+drawModel m = Pictures . (rect :) . map drawBall $ modelBalls m where
+    rect = Color black $ rectangleWire (modelWidth m) (modelHeight m)
 
 
 stepModel :: Float -> Model -> Model
-stepModel dt = map (stepBall dt) . collissions bcp bcf
+stepModel dt m = m { modelBalls = map (stepBall m dt) . collissions bcp bcf $ modelBalls m }
     where
     bcf (Ball p v) (Ball q u) = (Ball p *** Ball q) (B.collideBalls p v q u)
     bcp (Ball p v) (Ball q u) =
@@ -79,15 +78,14 @@ stepModel dt = map (stepBall dt) . collissions bcp bcf
         in B.isCollission p ballSize q ballSize && (d2 < d1)
 
 
-initModel = [ Ball (50:+50) (40:+20)
-            , Ball (100:+150) ((-20):+(-30))
-            , Ball (100:+80) (20:+(-50))
-            , Ball (200:+200) ((-20):+(-50))
-            , Ball (30:+200) (50:+(-30))
-            ]
-
 makeRandomModel :: (RandomGen g) => g -> Int -> Model
-makeRandomModel g n = zipWith Ball ps vs where
+makeRandomModel g n = Model
+    { modelWidth = initModelWidth
+    , modelHeight = initModelHeight
+    , modelBalls = randomBalls g n
+    }
+
+randomBalls g n = zipWith Ball ps vs where
     vs = randomVecs g 10 80
     ps = radialBallPoints ballSize 10 n
 
