@@ -4,6 +4,7 @@ import Control.Arrow ((***))
 import Data.Complex
 import Debug.Trace
 import Graphics.Gloss
+import Graphics.Gloss.Interface.Environment (getScreenSize)
 import System.Random (RandomGen, getStdGen)
 import ReadArgs      (readArgs)
 
@@ -25,12 +26,20 @@ modelRight m = modelW2 m
 
 
 main = do
-  n <- readArgs  -- ^ number of balls in model
+  (n, fs) <- readArgs  -- ^ number of balls in model, and fullscreen
+  let fullScreen = fs == Just True
   g <- getStdGen
-  let window = InWindow "Gloss Balls" (initModelWidth, initModelHeight) (0,0)
-  let initModel = makeRandomModel g n
-  -- let initModel = [Ball p (0:+0) | p <- radialBallPoints ballSize 10 (n::Int)]
-  -- display window white (drawModel initModel)
+  let balls = randomBalls g n
+  let window = if fullScreen
+      then FullScreen
+      else InWindow "Gloss Balls" (initModelWidth, initModelHeight) (0,0)
+  (w,h) <- getScreenSize
+  let modelWidth = if fullScreen then fromIntegral w else initModelWidth
+  let modelHeight = if fullScreen then fromIntegral h else initModelHeight
+  let initModel = Model { modelWidth = modelWidth
+                        , modelHeight = modelHeight
+                        , modelBalls = randomBalls g n
+                        }
   simulate
         window           -- display
         (dark $ dark $ dark blue) -- background
@@ -78,13 +87,7 @@ stepModel dt m = m { modelBalls = map (stepBall m dt) . collissions bcp bcf $ mo
         in B.isCollission p ballSize q ballSize && (d2 < d1)
 
 
-makeRandomModel :: (RandomGen g) => g -> Int -> Model
-makeRandomModel g n = Model
-    { modelWidth = initModelWidth
-    , modelHeight = initModelHeight
-    , modelBalls = randomBalls g n
-    }
-
+randomBalls :: (RandomGen g) => g -> Int -> [Ball]
 randomBalls g n = zipWith Ball ps vs where
     vs = randomVecs g 10 80
     ps = radialBallPoints ballSize 10 n

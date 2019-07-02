@@ -1,4 +1,4 @@
-resolver: lts-7.15
+resolver: lts-9.21
 packages:
 - '.'
 # Dependency packages to be pulled from upstream that are not in the resolver
