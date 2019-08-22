@@ -5,7 +5,7 @@ import Data.Complex
 import Debug.Trace
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Environment (getScreenSize)
-import System.Random (RandomGen, getStdGen)
+import System.Random (RandomGen, getStdGen, randomRIO)
 import ReadArgs      (readArgs)
 
 import qualified Balls as B
@@ -25,6 +25,15 @@ modelLeft m = negate (modelW2 m)
 modelRight m = modelW2 m
 
 
+backgroundColors =
+  [ dark $ dark $ dark blue
+  , dark $ dark $ dark green
+  , dark $ dark $ dark red
+  , dark $ dark $ dark magenta
+  , makeColorI 0 80 80 255
+  ]
+
+
 main = do
   (n, fs) <- readArgs  -- ^ number of balls in model, and fullscreen
   let fullScreen = fs == Just True
@@ -40,9 +49,13 @@ main = do
                         , modelHeight = modelHeight
                         , modelBalls = randomBalls g n
                         }
+  backgroundColor <- do
+    i <- randomRIO (0, length backgroundColors - 1)
+    return (backgroundColors!!i)
+
   simulate
         window           -- display
-        (dark $ dark $ dark blue) -- background
+        backgroundColor
         30               -- steps per second
         initModel        -- initial model
         drawModel        -- display function
