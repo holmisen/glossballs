@@ -25,12 +25,19 @@ modelLeft m = negate (modelW2 m)
 modelRight m = modelW2 m
 
 
+-- Manually define the colors, because the `dark` functions produces negative values
+darkBlue = makeColor 0 0 0.5 1
+darkRed = makeColor 0.5 0 0 1
+darkGreen = makeColor 0 0.5 0 1
+darkMagenta = makeColor 0.5 0 0.3 1
+darkCyan = makeColor 0 0.3 0.5 1
+
 backgroundColors =
-  [ dark $ dark $ dark blue
-  , dark $ dark $ dark green
-  , dark $ dark $ dark red
-  , dark $ dark $ dark magenta
-  , makeColorI 0 80 80 255
+  [ darkBlue
+  , darkGreen
+  , darkCyan
+  , darkRed
+  , darkMagenta
   ]
 
 
@@ -45,17 +52,16 @@ main = do
   (w,h) <- getScreenSize
   let modelWidth = if fullScreen then fromIntegral w else initModelWidth
   let modelHeight = if fullScreen then fromIntegral h else initModelHeight
+  dropColors <- randomRIO (0, length backgroundColors)
   let initModel = Model { modelWidth = modelWidth
                         , modelHeight = modelHeight
                         , modelBalls = randomBalls g n
+                        , colorList = drop dropColors $ cycle backgroundColors
+                        , colorRatio = 0
                         }
-  backgroundColor <- do
-    i <- randomRIO (0, length backgroundColors - 1)
-    return (backgroundColors!!i)
-
   simulate
         window           -- display
-        backgroundColor
+        black            -- background color
         30               -- steps per second
         initModel        -- initial model
         drawModel        -- display function
@@ -83,16 +89,28 @@ vmult s (x :+ y) = s*x :+ s*y
 
 ------------------------------------------------------------
 
-data Model = Model { modelWidth, modelHeight :: Float, modelBalls :: [Ball] }
+data Model = Model
+  { modelWidth, modelHeight :: Float
+  , modelBalls :: [Ball]
+  , colorList :: [Color]
+  , colorRatio :: Float
+  }
 
 drawModel :: Model -> Picture
-drawModel m = Pictures . (rect :) . map drawBall $ modelBalls m where
-    rect = Color black $ rectangleWire (modelWidth m) (modelHeight m)
+drawModel m = Pictures . (rect :) . map drawBall $ modelBalls m
+  where
+    rect = Color bg $ rectangleSolid (modelWidth m) (modelHeight m)
+    bg = mixColors (50 - colorRatio m) (colorRatio m) (colorList m !! 0) (colorList m !! 1)
 
 
 stepModel :: Float -> Model -> Model
-stepModel dt m = m { modelBalls = map (stepBall m dt) . collissions bcp bcf $ modelBalls m }
+stepModel dt m =
+  m { modelBalls = map (stepBall m dt) . collissions bcp bcf $ modelBalls m
+    , colorRatio = if newRatio > 50 then 0 else newRatio
+    , colorList = if newRatio > 50 then tail $ colorList m else colorList m
+    }
     where
+    newRatio = colorRatio m + dt
     bcf (Ball p v) (Ball q u) = (Ball p *** Ball q) (B.collideBalls p v q u)
     bcp (Ball p v) (Ball q u) =
         let d1 = B.distance p q
