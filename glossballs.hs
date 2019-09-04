@@ -28,7 +28,7 @@ modelRight m = modelW2 m
 -- Manually define the colors, because the `dark` functions produces negative values
 darkBlue = makeColor 0 0 0.5 1
 darkRed = makeColor 0.5 0 0 1
-darkGreen = makeColor 0 0.5 0 1
+darkGreen = makeColor 0 0.4 0 1
 darkMagenta = makeColor 0.5 0 0.3 1
 darkCyan = makeColor 0 0.3 0.5 1
 
@@ -100,14 +100,14 @@ drawModel :: Model -> Picture
 drawModel m = Pictures . (rect :) . map drawBall $ modelBalls m
   where
     rect = Color bg $ rectangleSolid (modelWidth m) (modelHeight m)
-    bg = mixColors (50 - colorRatio m) (colorRatio m) (colorList m !! 0) (colorList m !! 1)
+    bg = mixColors (100 - colorRatio m) (colorRatio m) (colorList m !! 0) (colorList m !! 1)
 
 
 stepModel :: Float -> Model -> Model
 stepModel dt m =
   m { modelBalls = map (stepBall m dt) . collissions bcp bcf $ modelBalls m
-    , colorRatio = if newRatio > 50 then 0 else newRatio
-    , colorList = if newRatio > 50 then tail $ colorList m else colorList m
+    , colorRatio = if newRatio > 100 then 0 else newRatio
+    , colorList = if newRatio > 100 then tail $ colorList m else colorList m
     }
     where
     newRatio = colorRatio m + dt
